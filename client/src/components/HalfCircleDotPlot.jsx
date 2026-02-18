@@ -15,9 +15,28 @@ export default function HalfCircleDotPlot({ data = [], title = "Today's Class At
     const classTypes = [...new Set(data.map(d => d.class_type).filter(Boolean))];
 
     // Filter data by selected class type
-    const filteredData = classFilter
+    const typeFiltered = classFilter
         ? data.filter(d => d.class_type === classFilter)
         : data;
+
+    // Deduplicate by student_id — show each student only once
+    const studentMap = new Map();
+    typeFiltered.forEach(d => {
+        const existing = studentMap.get(d.student_id);
+        if (!existing) {
+            studentMap.set(d.student_id, { ...d });
+        } else {
+            // If any session is Absent, mark as Absent
+            if (d.status === 'Absent') existing.status = 'Absent';
+        }
+    });
+    const filteredData = Array.from(studentMap.values())
+        .sort((a, b) => {
+            // Present first (left side), Absent last (right side)
+            if (a.status === 'Present' && b.status !== 'Present') return -1;
+            if (a.status !== 'Present' && b.status === 'Present') return 1;
+            return 0;
+        });
 
     if (!data.length) {
         return (
