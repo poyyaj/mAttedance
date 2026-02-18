@@ -7,6 +7,7 @@ import AdminSubjects from './pages/admin/Subjects';
 import AdminStudents from './pages/admin/Students';
 import AdminFaculty from './pages/admin/Faculty';
 import AdminReports from './pages/admin/Reports';
+import AdminPrograms from './pages/admin/Programs';
 import FacultyDashboard from './pages/faculty/Dashboard';
 import MarkAttendance from './pages/faculty/MarkAttendance';
 import AttendanceHistory from './pages/faculty/AttendanceHistory';
@@ -31,6 +32,7 @@ export default function App() {
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute role="admin"><Layout /></ProtectedRoute>}>
                 <Route index element={<AdminDashboard />} />
+                <Route path="programs" element={<AdminPrograms />} />
                 <Route path="subjects" element={<AdminSubjects />} />
                 <Route path="students" element={<AdminStudents />} />
                 <Route path="faculty" element={<AdminFaculty />} />

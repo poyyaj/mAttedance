@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { FiHome, FiBook, FiUsers, FiUserCheck, FiBarChart2, FiLogOut, FiSun, FiMoon, FiMenu, FiX, FiEdit, FiClock } from 'react-icons/fi';
+import { FiHome, FiBook, FiUsers, FiUserCheck, FiBarChart2, FiLogOut, FiSun, FiMoon, FiMenu, FiX, FiEdit, FiClock, FiLayers } from 'react-icons/fi';
 
 export default function Layout() {
     const { user, logout, isAdmin } = useAuth();
@@ -14,6 +14,7 @@ export default function Layout() {
 
     const adminNav = [
         { to: '/admin', icon: <FiHome />, label: 'Dashboard', end: true },
+        { to: '/admin/programs', icon: <FiLayers />, label: 'Programs' },
         { to: '/admin/subjects', icon: <FiBook />, label: 'Subjects' },
         { to: '/admin/students', icon: <FiUsers />, label: 'Students' },
         { to: '/admin/faculty', icon: <FiUserCheck />, label: 'Faculty' },
