@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment
+.env
+
+# Database (local dev)
+*.db
+*.db-wal
+*.db-shm
+
+# Uploads
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Build output
+client/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
