@@ -3,12 +3,21 @@ import { useEffect, useRef, useState } from 'react';
 export default function HalfCircleDotPlot({ data = [], title = "Today's Class Attendance Overview" }) {
     const svgRef = useRef(null);
     const [animated, setAnimated] = useState(false);
+    const [classFilter, setClassFilter] = useState('');
 
     useEffect(() => {
         setAnimated(false);
         const timer = setTimeout(() => setAnimated(true), 100);
         return () => clearTimeout(timer);
-    }, [data]);
+    }, [data, classFilter]);
+
+    // Get unique class types from data for the dropdown
+    const classTypes = [...new Set(data.map(d => d.class_type).filter(Boolean))];
+
+    // Filter data by selected class type
+    const filteredData = classFilter
+        ? data.filter(d => d.class_type === classFilter)
+        : data;
 
     if (!data.length) {
         return (
@@ -29,17 +38,17 @@ export default function HalfCircleDotPlot({ data = [], title = "Today's Class At
     const minRadius = 60;
     const dotRadius = 8;
 
-    // Color logic
+    // Simple color: Present = green, Absent/Half-day = orange, Shortage = red
     const getColor = (item) => {
         if (item.overall_pct !== null && item.overall_pct < 75) return '#ef4444'; // Red — shortage
-        if (item.class_type === 'Seminar' || item.class_type === 'Project Presentation') return '#3b82f6'; // Blue
         if (item.status === 'Present') return '#10b981'; // Green
+        if (item.status === 'Half-day') return '#f59e0b'; // Orange
         return '#f59e0b'; // Orange — absent
     };
 
     // Arrange dots in semicircle arcs
     const dots = [];
-    const totalDots = data.length;
+    const totalDots = filteredData.length;
     const rows = Math.ceil(Math.sqrt(totalDots / 2));
     let dotIndex = 0;
 
@@ -56,17 +65,54 @@ export default function HalfCircleDotPlot({ data = [], title = "Today's Class At
             const y = centerY - radius * Math.sin(angle);
             dots.push({
                 x, y,
-                color: getColor(data[dotIndex]),
-                student: data[dotIndex],
+                color: getColor(filteredData[dotIndex]),
+                student: filteredData[dotIndex],
                 delay: dotIndex * 30,
             });
             dotIndex++;
         }
     }
 
+    // Count present and absent
+    const presentCount = filteredData.filter(d => d.status === 'Present').length;
+    const absentCount = filteredData.filter(d => d.status === 'Absent').length;
+    const halfDayCount = filteredData.filter(d => d.status === 'Half-day').length;
+
     return (
         <div className="card dot-plot-container">
-            <div className="dot-plot-title">👉 {title}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                <div className="dot-plot-title" style={{ margin: 0 }}>👉 {title}</div>
+                <select
+                    className="form-select"
+                    value={classFilter}
+                    onChange={e => setClassFilter(e.target.value)}
+                    style={{ minWidth: 160, maxWidth: 220 }}
+                >
+                    <option value="">All Class Types</option>
+                    {classTypes.map(ct => (
+                        <option key={ct} value={ct}>{ct}</option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Counts */}
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                    <span style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: '#10b981' }}>{presentCount}</span>
+                    <span style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>Present</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                    <span style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: '#f59e0b' }}>{absentCount}</span>
+                    <span style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>Absent</span>
+                </div>
+                {halfDayCount > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                        <span style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: '#3b82f6' }}>{halfDayCount}</span>
+                        <span style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>Half-day</span>
+                    </div>
+                )}
+            </div>
+
             <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', maxWidth: 500, overflow: 'visible' }}>
                 {/* Base arc */}
                 <path
@@ -103,7 +149,6 @@ export default function HalfCircleDotPlot({ data = [], title = "Today's Class At
             <div className="dot-plot-legend">
                 <div className="legend-item"><div className="legend-dot" style={{ background: '#10b981' }} /> Present</div>
                 <div className="legend-item"><div className="legend-dot" style={{ background: '#f59e0b' }} /> Absent</div>
-                <div className="legend-item"><div className="legend-dot" style={{ background: '#3b82f6' }} /> Seminar/Project</div>
                 <div className="legend-item"><div className="legend-dot" style={{ background: '#ef4444' }} /> Shortage Alert</div>
             </div>
         </div>
