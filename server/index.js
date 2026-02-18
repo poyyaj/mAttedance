@@ -68,6 +68,55 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// ONE-TIME SETUP: Visit this URL in browser to initialize DB & create admin
+// e.g. https://your-app.onrender.com/api/setup
+app.get('/api/setup', async (req, res) => {
+    try {
+        // Create tables
+        const schemaPath = path.join(__dirname, 'db', 'schema.sql');
+        const schema = fs.readFileSync(schemaPath, 'utf-8');
+        await pool.query(schema);
+
+        // Delete existing admin and re-create
+        await pool.query('DELETE FROM admins');
+        const hashedPassword = await bcrypt.hash('mAttedance@2026', 10);
+        await pool.query(
+            'INSERT INTO admins (username, password_hash) VALUES ($1, $2)',
+            ['admin', hashedPassword]
+        );
+
+        res.json({
+            success: true,
+            message: 'Database initialized and admin user created!',
+            login: { username: 'admin', password: 'mAttedance@2026' }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message, stack: err.stack });
+    }
+});
+
+// DEBUG: Check database state
+app.get('/api/debug/db', async (req, res) => {
+    try {
+        const tables = await pool.query(`
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_schema = 'public' ORDER BY table_name
+        `);
+        const admins = await pool.query('SELECT id, username, LENGTH(password_hash) as hash_length FROM admins');
+        res.json({
+            tables: tables.rows.map(r => r.table_name),
+            admins: admins.rows,
+            env: {
+                NODE_ENV: process.env.NODE_ENV,
+                hasDbUrl: !!process.env.DATABASE_URL,
+                hasJwtSecret: !!process.env.JWT_SECRET
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Serve frontend static files in production
 const clientBuild = path.join(__dirname, '../client/dist');
 if (fs.existsSync(clientBuild)) {
