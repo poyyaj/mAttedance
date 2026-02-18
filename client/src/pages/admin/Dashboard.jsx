@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import { FiUsers, FiBook, FiUserCheck, FiAlertTriangle, FiCheckCircle, FiActivity } from 'react-icons/fi';
+import { FiUsers, FiBook, FiUserCheck, FiAlertTriangle, FiCheckCircle, FiActivity, FiRefreshCw } from 'react-icons/fi';
 import api from '../../utils/api';
 import StatCard from '../../components/StatCard';
 import HalfCircleDotPlot from '../../components/HalfCircleDotPlot';
@@ -18,7 +18,7 @@ export default function AdminDashboard() {
     const [heatmapData, setHeatmapData] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const fetchData = useCallback(() => {
         Promise.all([
             api.get('/dashboard/summary'),
             api.get('/dashboard/today'),
@@ -35,6 +35,16 @@ export default function AdminDashboard() {
             setHeatmapData(heatmap.data);
         }).catch(console.error).finally(() => setLoading(false));
     }, []);
+
+    useEffect(() => {
+        fetchData();
+        // Auto-refresh every 30 seconds
+        const interval = setInterval(fetchData, 30000);
+        // Refresh when tab regains focus
+        const onFocus = () => fetchData();
+        window.addEventListener('focus', onFocus);
+        return () => { clearInterval(interval); window.removeEventListener('focus', onFocus); };
+    }, [fetchData]);
 
     if (loading) return <div className="loading-spinner" />;
 
