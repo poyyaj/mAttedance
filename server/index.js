@@ -43,7 +43,7 @@ const pool = new Pool({
         if (parseInt(adminCount.rows[0].count) === 0) {
             const hashedPassword = await bcrypt.hash('mAttedance@2026', 10);
             await pool.query(
-                'INSERT INTO admins (username, password) VALUES ($1, $2)',
+                'INSERT INTO admins (username, password_hash) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET password_hash = $2',
                 ['admin', hashedPassword]
             );
             console.log('🌱 Admin user auto-seeded (admin / mAttedance@2026)');
