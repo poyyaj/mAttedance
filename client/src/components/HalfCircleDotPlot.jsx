@@ -38,12 +38,10 @@ export default function HalfCircleDotPlot({ data = [], title = "Today's Class At
     const minRadius = 60;
     const dotRadius = 8;
 
-    // Simple color: Present = green, Absent/Half-day = orange, Shortage = red
+    // Simple color: Present = green, Absent/Half-day = orange
     const getColor = (item) => {
-        if (item.overall_pct !== null && item.overall_pct < 75) return '#ef4444'; // Red — shortage
         if (item.status === 'Present') return '#10b981'; // Green
-        if (item.status === 'Half-day') return '#f59e0b'; // Orange
-        return '#f59e0b'; // Orange — absent
+        return '#f59e0b'; // Orange — absent/half-day
     };
 
     // Arrange dots in semicircle arcs
@@ -149,7 +147,6 @@ export default function HalfCircleDotPlot({ data = [], title = "Today's Class At
             <div className="dot-plot-legend">
                 <div className="legend-item"><div className="legend-dot" style={{ background: '#10b981' }} /> Present</div>
                 <div className="legend-item"><div className="legend-dot" style={{ background: '#f59e0b' }} /> Absent</div>
-                <div className="legend-item"><div className="legend-dot" style={{ background: '#ef4444' }} /> Shortage Alert</div>
             </div>
         </div>
     );
