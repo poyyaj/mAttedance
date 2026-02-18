@@ -27,9 +27,9 @@ export default function FacultyDashboard() {
     if (loading) return <div className="loading-spinner" />;
 
     const totalSessions = sessions.length;
-    const totalStudentsMarked = sessions.reduce((sum, s) => sum + s.total, 0);
+    const totalStudentsMarked = sessions.reduce((sum, s) => sum + parseInt(s.total), 0);
     const avgAttendance = sessions.length > 0
-        ? Math.round(sessions.reduce((sum, s) => sum + (s.present / s.total * 100), 0) / sessions.length)
+        ? Math.round(sessions.reduce((sum, s) => sum + (parseInt(s.present) / parseInt(s.total) * 100), 0) / sessions.length)
         : 0;
 
     const recentSessions = sessions.slice(0, 8);
@@ -38,8 +38,8 @@ export default function FacultyDashboard() {
     const subjectMap = {};
     sessions.forEach(s => {
         if (!subjectMap[s.subject_name]) subjectMap[s.subject_name] = { total: 0, present: 0 };
-        subjectMap[s.subject_name].total += s.total;
-        subjectMap[s.subject_name].present += s.present;
+        subjectMap[s.subject_name].total += parseInt(s.total);
+        subjectMap[s.subject_name].present += parseInt(s.present);
     });
 
     const chartData = {
